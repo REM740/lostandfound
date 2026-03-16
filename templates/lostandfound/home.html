@@ -1,0 +1,31 @@
+{% extends 'lostandfound/base.html' %}
+
+{% block content %}
+
+<div class="text-center">
+
+    <h2 class="text-4xl font-bold mb-10">
+        Welcome to the Lost & Found System
+    </h2>
+
+    <div class="flex justify-center gap-8">
+
+        <a href="/lostandfound/lostitems/"
+           class="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-lg text-xl shadow-lg">
+
+            View Lost Items
+
+        </a>
+
+        <a href="/lostandfound/founditems/"
+           class="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-lg text-xl shadow-lg">
+
+            View Found Items
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

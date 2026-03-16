@@ -1,0 +1,276 @@
+{% extends 'lostandfound/base.html' %}
+
+{% block content %}
+
+<h2 class="text-3xl font-bold mb-6">Manage Lost Items</h2>
+
+<!-- Add Button -->
+<button onclick="openAddModal()"
+class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mb-6 inline-block">
+Add Lost Item
+</button>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-0">
+
+{% for item in items %}
+
+<div class="bg-white rounded-lg shadow p-4 relative">
+
+    <!-- Delete Icon -->
+    <button onclick="confirmDelete('{{ item.id }}')"
+       class="absolute top-3 right-3 text-red-500 hover:text-red-700">
+
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="h-6 w-6"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke="currentColor">
+
+            <path stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862
+                     a2 2 0 01-1.995-1.858L5 7m5
+                     4v6m4-6v6M1
+                     7h22M9
+                     3h6a1 1 0 011
+                     1v1H8V4a1 1 0 011-1z"/>
+
+        </svg>
+
+    </button>
+
+    {% if item.image %}
+        <img src="{{ item.image.url }}" class="w-full h-48 object-cover rounded">
+    {% endif %}
+
+    <h3 class="text-xl font-semibold mt-3">
+        {{ item.name }}
+    </h3>
+
+    <p class="text-gray-600 mt-2">
+        {{ item.description }}
+    </p>
+
+    <p class="text-sm mt-2">
+        <span class="font-semibold">Lost in:</span> {{ item.lost_in }}
+    </p>
+
+    <p class="text-sm text-gray-500">
+        {{ item.date_lost }}
+    </p>
+
+    <!-- Edit Button -->
+    <div class="mt-4">
+
+        <button onclick="openEditModal('{{ item.id }}')"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
+            Edit
+        </button>
+
+    </div>
+
+</div>
+
+<!-- EDIT MODAL FOR THIS ITEM -->
+<div id="editModal{{ item.id }}"
+     class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+
+    <div class="bg-white p-6 rounded-lg w-96">
+
+        <h2 class="text-2xl font-bold mb-4">Edit Lost Item</h2>
+
+        <form method="POST"
+              enctype="multipart/form-data"
+              action="{% url 'edit_lost_item' item.id %}">
+
+            {% csrf_token %}
+
+            <label class="block mb-2">Name</label>
+            <input type="text" name="name"
+                   value="{{ item.name }}"
+                   class="w-full border rounded px-3 py-2 mb-3">
+
+            <label class="block mb-2">Description</label>
+            <textarea name="description"
+                      class="w-full border rounded px-3 py-2 mb-3">{{ item.description }}</textarea>
+
+            <label class="block mb-2">Lost In</label>
+            <input type="text" name="lost_in"
+                   value="{{ item.lost_in }}"
+                   class="w-full border rounded px-3 py-2 mb-3">
+
+            <label class="block mb-2">Date Lost</label>
+            <input type="date" name="date_lost"
+                   value="{{ item.date_lost|date:'Y-m-d' }}"
+                   class="w-full border rounded px-3 py-2 mb-3">
+
+            <label class="block mb-2">Image</label>
+            <input type="file" name="image"
+                   class="w-full border rounded px-3 py-2 mb-3">
+
+            <div class="flex justify-between mt-4">
+
+                <button type="button"
+                        onclick="openFoundModal('{{ item.id }}')"
+                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                    Mark as Found
+                </button>
+
+                <div class="flex gap-3">
+
+                    <button type="button"
+                            onclick="closeEditModal('{{ item.id }}')"
+                            class="bg-gray-400 text-white px-4 py-2 rounded">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                            class="bg-blue-500 text-white px-4 py-2 rounded">
+                        Save
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+{% empty %}
+
+<p>No lost items found.</p>
+
+{% endfor %}
+
+</div>
+
+
+<!-- ADD ITEM MODAL -->
+<div id="addModal"
+class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+
+<div class="bg-white p-6 rounded-lg w-96">
+
+<h2 class="text-2xl font-bold mb-4">Add Lost Item</h2>
+
+<form method="POST" enctype="multipart/form-data"
+action="{% url 'add_lost_item' %}">
+
+{% csrf_token %}
+
+{{ form.as_p }}
+
+<div class="flex justify-end gap-3 mt-4">
+
+<button type="button"
+onclick="closeAddModal()"
+class="bg-gray-400 text-white px-4 py-2 rounded">
+Cancel
+</button>
+
+<button type="submit"
+class="bg-blue-500 text-white px-4 py-2 rounded">
+Save
+</button>
+
+</div>
+
+</form>
+
+</div>
+</div>
+
+
+
+<!-- MARK AS FOUND MODALS (PER ITEM) -->
+{% for item in items %}
+<div id="foundModal{{ item.id }}"
+     class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+
+    <div class="bg-white p-6 rounded-lg w-96">
+
+        <h2 class="text-2xl font-bold mb-4">Mark Item as Found</h2>
+
+        <form method="POST"
+              action="{% url 'mark_as_found' item.id %}">
+
+            {% csrf_token %}
+
+            <label class="block mb-2">Found By</label>
+            <input type="text" name="found_by"
+                   class="w-full border rounded px-3 py-2 mb-3">
+
+            <label class="block mb-2">Found In</label>
+            <input type="text" name="found_in"
+                   class="w-full border rounded px-3 py-2 mb-3">
+
+            <label class="block mb-2">Date Found</label>
+            <input type="date" name="date_found"
+                   class="w-full border rounded px-3 py-2 mb-3">
+
+            <div class="flex justify-end gap-3 mt-4">
+
+                <button type="button"
+                        onclick="closeFoundModal('{{ item.id }}')"
+                        class="bg-gray-400 text-white px-4 py-2 rounded">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                    Save
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+{% endfor %}
+
+
+<!-- JAVASCRIPT -->
+<script>
+
+function openAddModal(){
+    document.getElementById("addModal").classList.remove("hidden")
+    document.getElementById("addModal").classList.add("flex")
+}
+
+function closeAddModal(){
+    document.getElementById("addModal").classList.add("hidden")
+}
+
+function confirmDelete(id){
+
+if(confirm("Are you sure you want to delete this item?")){
+    window.location.href="/manager/delete-lost-item/" + id + "/"
+}
+
+}
+
+function openEditModal(id){
+    document.getElementById("editModal"+id).classList.remove("hidden")
+    document.getElementById("editModal"+id).classList.add("flex")
+}
+
+function closeEditModal(id){
+    document.getElementById("editModal"+id).classList.add("hidden")
+}
+
+function openFoundModal(id){
+    document.getElementById("foundModal"+id).classList.remove("hidden")
+    document.getElementById("foundModal"+id).classList.add("flex")
+}
+
+function closeFoundModal(id){
+    document.getElementById("foundModal"+id).classList.add("hidden")
+}
+
+</script>
+
+{% endblock %}

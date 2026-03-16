@@ -1,0 +1,51 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+<title>
+    Lost & Found
+</title> 
+{% load static %} 
+<script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+
+<nav class="bg-blue-600 text-white p-4">
+    <div class="container mx-auto flex justify-between items-center">
+
+        <h1 class="text-xl font-bold">
+            Lost & Found System
+        </h1>
+
+        <div class="space-x-4 flex items-center">
+
+            {% if user.is_authenticated %}
+
+                <!-- Manager Links -->
+                <a href="/manager/dashboard/" class="hover:underline">Home</a>
+                <a href="/manager/manage_lost_items/" class="hover:underline">Lost Items</a>
+                <a href="/manager/manage_found_items/" class="hover:underline">Found Items</a>
+
+                <a href="/manager/logout/"
+                   class="bg-red-500 px-4 py-2 rounded hover:bg-red-600">
+                    Logout
+                </a>
+
+            {% else %}
+
+                <!-- Visitor Links -->
+                <a href="/lostandfound/" class="hover:underline">Home</a>
+                <a href="/lostandfound/lostitems/" class="hover:underline">Lost Items</a>
+                <a href="/lostandfound/founditems/" class="hover:underline">Found Items</a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+</nav>
+<div class="container mx-auto p-8"> {% block content %} {% endblock %} </div>
+
+</body>
+</html>

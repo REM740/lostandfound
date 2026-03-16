@@ -1,0 +1,31 @@
+{% extends 'lostandfound/base.html' %}
+
+{% block content %}
+
+<div class="text-center">
+
+    <h2 class="text-4xl font-bold mb-10">
+        Manager Dashboard
+    </h2>
+
+    <div class="flex justify-center gap-8">
+
+        <a href="/manager/manage_lost_items/"
+           class="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-lg text-xl shadow-lg">
+
+            Manage Lost Items
+
+        </a>
+
+        <a href="/manager/manage_found_items/"
+           class="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-lg text-xl shadow-lg">
+
+            Manage Found Items
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}
