@@ -1,12 +1,30 @@
 {% extends 'lostandfound/base.html' %}
 
 {% block content %}
-
+<div class="max-w-7xl mx-auto mt-4 md:mt-8 px-4 md:px-6 py-6 md:py-8 bg-white/90 border-4 border-green-700 rounded-xl shadow-xl">
 <h2 class="text-3xl font-bold mb-6">Manage Found Items</h2>
+
+<form method="get" class="mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+    <input
+        type="text"
+        name="q"
+        value="{{ query|default:'' }}"
+        placeholder="Search found items by name..."
+        class="flex-1 w-full border-2 border-green-700 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-700"
+    />
+    <button type="submit" class="bg-green-700 hover:bg-green-800 text-white px-6 py-2 rounded-lg font-semibold">
+        Search
+    </button>
+    {% if query %}
+        <a href="{{ request.path }}" class="text-sm text-green-700 hover:underline px-1">
+            Clear
+        </a>
+    {% endif %}
+</form>
 
 <!-- Add Button -->
 <button onclick="openAddFoundModal()"
-        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mb-6 inline-block">
+        class="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded mb-6 inline-block">
     Add Found Item
 </button>
 
@@ -14,7 +32,7 @@
 
 {% for item in items %}
 
-<div class="bg-white rounded-lg shadow p-4 relative">
+<div class="bg-white rounded-lg shadow p-4 relative border-2 border-green-700">
 
     <!-- Delete Icon -->
     <button onclick="confirmDeleteFound('{{ item.id }}')"
@@ -89,7 +107,7 @@
 <div id="editFoundModal{{ item.id }}"
      class="fixed inset-0 bg-black bg-opacity-40 hidden flex items-center justify-center z-50">
 
-    <div class="bg-white p-6 rounded-lg w-96 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white p-6 rounded-lg w-96 max-h-[90vh] overflow-y-auto border-4 border-green-700">
 
         <h2 class="text-2xl font-bold mb-4">Edit Found Item</h2>
 
@@ -151,7 +169,7 @@
                 </button>
 
                 <button type="submit"
-                        class="bg-blue-500 text-white px-4 py-2 rounded">
+                        class="bg-green-700 text-white px-4 py-2 rounded">
                     Save
                 </button>
 
@@ -174,7 +192,7 @@
 <div id="addFoundModal"
      class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
 
-    <div class="bg-white p-6 rounded-lg w-96 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white p-6 rounded-lg w-96 max-h-[90vh] overflow-y-auto border-4 border-green-700">
 
         <h2 class="text-2xl font-bold mb-4">Add Found Item</h2>
 
@@ -198,6 +216,8 @@
             </div>
         </form>
     </div>
+</div>
+
 </div>
 
 <!-- JAVASCRIPT -->

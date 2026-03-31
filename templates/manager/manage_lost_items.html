@@ -1,12 +1,30 @@
 {% extends 'lostandfound/base.html' %}
 
 {% block content %}
-
+<div class="max-w-7xl mx-auto mt-4 md:mt-8 px-4 md:px-6 py-6 md:py-8 bg-white/90 border-4 border-green-700 rounded-xl shadow-xl">
 <h2 class="text-3xl font-bold mb-6">Manage Lost Items</h2>
+
+<form method="get" class="mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+    <input
+        type="text"
+        name="q"
+        value="{{ query|default:'' }}"
+        placeholder="Search lost items by name..."
+        class="flex-1 w-full border-2 border-green-700 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-700"
+    />
+    <button type="submit" class="bg-green-700 hover:bg-green-800 text-white px-6 py-2 rounded-lg font-semibold">
+        Search
+    </button>
+    {% if query %}
+        <a href="{{ request.path }}" class="text-sm text-green-700 hover:underline px-1">
+            Clear
+        </a>
+    {% endif %}
+</form>
 
 <!-- Add Button -->
 <button onclick="openAddModal()"
-class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mb-6 inline-block">
+class="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded mb-6 inline-block">
 Add Lost Item
 </button>
 
@@ -14,7 +32,7 @@ Add Lost Item
 
 {% for item in items %}
 
-<div class="bg-white rounded-lg shadow p-4 relative">
+<div class="bg-white rounded-lg shadow p-4 relative border-2 border-green-700">
 
     <!-- Delete Icon -->
     <button onclick="confirmDelete('{{ item.id }}')"
@@ -76,7 +94,7 @@ Add Lost Item
 <div id="editModal{{ item.id }}"
      class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
 
-    <div class="bg-white p-6 rounded-lg w-96">
+    <div class="bg-white p-6 rounded-lg w-96 border-4 border-green-700">
 
         <h2 class="text-2xl font-bold mb-4">Edit Lost Item</h2>
 
@@ -126,7 +144,7 @@ Add Lost Item
                     </button>
 
                     <button type="submit"
-                            class="bg-blue-500 text-white px-4 py-2 rounded">
+                            class="bg-green-700 text-white px-4 py-2 rounded">
                         Save
                     </button>
 
@@ -152,7 +170,7 @@ Add Lost Item
 <div id="addModal"
 class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
 
-<div class="bg-white p-6 rounded-lg w-96">
+<div class="bg-white p-6 rounded-lg w-96 border-4 border-green-700">
 
 <h2 class="text-2xl font-bold mb-4">Add Lost Item</h2>
 
@@ -172,7 +190,7 @@ Cancel
 </button>
 
 <button type="submit"
-class="bg-blue-500 text-white px-4 py-2 rounded">
+class="bg-green-700 text-white px-4 py-2 rounded">
 Save
 </button>
 
@@ -190,7 +208,7 @@ Save
 <div id="foundModal{{ item.id }}"
      class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
 
-    <div class="bg-white p-6 rounded-lg w-96">
+    <div class="bg-white p-6 rounded-lg w-96 border-4 border-green-700">
 
         <h2 class="text-2xl font-bold mb-4">Mark Item as Found</h2>
 
@@ -220,7 +238,7 @@ Save
                 </button>
 
                 <button type="submit"
-                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                        class="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded">
                     Save
                 </button>
 
@@ -232,6 +250,7 @@ Save
 </div>
 {% endfor %}
 
+</div>
 
 <!-- JAVASCRIPT -->
 <script>

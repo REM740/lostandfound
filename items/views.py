@@ -3,32 +3,36 @@ from django.http import HttpResponse
 from .models import LostItem, FoundItem
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .forms import LostItemForm, FoundItemForm, FoundItemCreateForm
 from django.shortcuts import get_object_or_404
-
-@login_required
-def manager_logout(request):
-    logout(request)
-    return redirect('/lostandfound/')
 
 def homepage(request):
     return render(request, 'lostandfound/home.html')
 
 def lostitems(request):
+    query = request.GET.get('q', '').strip()
     items = LostItem.objects.all().order_by('-date_lost')
+    if query:
+        items = items.filter(name__icontains=query)
 
     context = {
-        'items': items
+        'items': items,
+        'query': query,
     }
 
     return render(request, 'lostandfound/lostitems.html', context)
 
 
 def founditems(request):
+    query = request.GET.get('q', '').strip()
     items = FoundItem.objects.all().order_by('-date_claimed')
+    if query:
+        items = items.filter(name__icontains=query)
 
     context = {
-        'items': items
+        'items': items,
+        'query': query,
     }
 
     return render(request, 'lostandfound/founditems.html', context)
@@ -51,10 +55,11 @@ def manager_login(request):
 
     return render(request, 'manager/login.html')
 
-@login_required
 def manager_logout(request):
     logout(request)
-    return redirect('/lostandfound/')
+    messages.success(request, "You have been logged out.")
+    return redirect('homepage')
+
 
 @login_required
 def manager_dashboard(request):
@@ -69,7 +74,6 @@ def manager_dashboard(request):
 
     return render(request, 'manager/dashboard.html', context)
 
-from django.shortcuts import redirect
 
 @login_required
 def add_lost_item(request):
@@ -80,6 +84,9 @@ def add_lost_item(request):
 
         if form.is_valid():
             form.save()
+            messages.success(request, "Lost item added successfully.")
+        else:
+            messages.error(request, "Could not add lost item. Please check the form.")
 
     return redirect('manage_lost_items')
 
@@ -93,15 +100,20 @@ def edit_lost_item(request, id):
 
         if form.is_valid():
             form.save()
-            return redirect('manage_lost_items')
+            messages.success(request, "Lost item updated successfully.")
+        else:
+            messages.error(request, "Could not update lost item. Please check the form.")
+
+    return redirect('manage_lost_items')
 
 @login_required
 def delete_lost_item(request, id):
 
     item = get_object_or_404(LostItem, id=id)
     item.delete()
+    messages.success(request, "Lost item deleted successfully.")
 
-    return redirect('/manager/dashboard/')
+    return redirect('manage_lost_items')
 
 @login_required
 def add_found_item(request):
@@ -111,7 +123,9 @@ def add_found_item(request):
 
         if form.is_valid():
             form.save()
-            return redirect('manage_found_items')
+            messages.success(request, "Found item added successfully.")
+        else:
+            messages.error(request, "Could not add found item. Please check the form.")
 
     return redirect('manage_found_items')
 
@@ -125,42 +139,50 @@ def edit_found_item(request, id):
 
         if form.is_valid():
             form.save()
-            return redirect('/manager/dashboard/')
+            messages.success(request, "Found item updated successfully.")
+        else:
+            messages.error(request, "Could not update found item. Please check the form.")
 
-    else:
-        form = FoundItemForm(instance=item)
-
-    return render(request, 'manager/edit_found_item.html', {'form': form})
+    return redirect('manage_found_items')
 
 @login_required
 def delete_found_item(request, id):
 
     item = get_object_or_404(FoundItem, id=id)
     item.delete()
+    messages.success(request, "Found item deleted successfully.")
 
-    return redirect('/manager/dashboard/')
+    return redirect('manage_found_items')
 
 @login_required
 def manage_lost_items(request):
-
+    query = request.GET.get('q', '').strip()
     items = LostItem.objects.all()
+    if query:
+        items = items.filter(name__icontains=query)
+    items = items.order_by('-date_lost')
     form = LostItemForm()
 
     return render(request, 'manager/manage_lost_items.html', {
         'items': items,
-        'form': form
+        'form': form,
+        'query': query,
     })
 
 
 @login_required
 def manage_found_items(request):
-
+    query = request.GET.get('q', '').strip()
     items = FoundItem.objects.all()
+    if query:
+        items = items.filter(name__icontains=query)
+    items = items.order_by('-date_claimed')
     form = FoundItemCreateForm()
 
     return render(request, 'manager/manage_found_items.html', {
         'items': items,
-        'form': form
+        'form': form,
+        'query': query,
     })
 
 @login_required
