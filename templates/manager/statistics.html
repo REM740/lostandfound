@@ -1,0 +1,127 @@
+{% extends 'lostandfound/base.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="max-w-7xl mx-auto mt-4 md:mt-8 px-4 md:px-6 py-6 md:py-8 bg-white/90 border-4 border-green-700 rounded-xl shadow-xl">
+    <h2 class="text-3xl font-bold mb-6">Statistics</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow p-4 border-2 border-green-700">
+            <h3 class="text-lg font-semibold mb-3">Overall Lost vs Current Lost</h3>
+            <canvas id="overallVsCurrentChart" class="w-full"></canvas>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 border-2 border-green-700">
+            <h3 class="text-lg font-semibold mb-3">Current Lost vs Claimed</h3>
+            <canvas id="currentVsClaimedChart" class="w-full"></canvas>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 border-2 border-green-700">
+            <h3 class="text-lg font-semibold mb-3">Unclaimed vs Claimed</h3>
+            <canvas id="unclaimedVsClaimedChart" class="w-full"></canvas>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 border-2 border-green-700">
+            <h3 class="text-lg font-semibold mb-3">Lost Items by Department</h3>
+            <canvas id="departmentChart" class="w-full"></canvas>
+        </div>
+    </div>
+
+    <div class="mt-8 bg-white rounded-lg shadow p-4 border-2 border-green-700">
+        <h3 class="text-xl font-semibold mb-4">Top Finders Leaderboard</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-green-700 text-white">
+                        <th class="text-left p-3">Name</th>
+                        <th class="text-left p-3">Number of Items Found</th>
+                        <th class="text-left p-3">Department</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in leaderboard %}
+                    <tr class="border-b border-gray-200">
+                        <td class="p-3">{{ row.found_by }}</td>
+                        <td class="p-3">{{ row.number_of_items_found }}</td>
+                        <td class="p-3">{{ row.department|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="p-3 text-gray-500">No found-item data yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{{ lost_by_department_labels|json_script:"department-labels" }}
+{{ lost_by_department_data|json_script:"department-data" }}
+
+<script>
+const makePieChart = (canvasId, labels, data, colors) => {
+    const el = document.getElementById(canvasId);
+    if (!el) return;
+
+    new Chart(el, {
+        type: "pie",
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: colors
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    });
+};
+
+makePieChart(
+    "overallVsCurrentChart",
+    ["Overall Lost Items", "Current Lost Items"],
+    [{{ overall_lost_items_count }}, {{ current_lost_items_count }}],
+    ["#087830", "#EF4444"]
+);
+
+makePieChart(
+    "currentVsClaimedChart",
+    ["Current Lost Items", "Claimed Items"],
+    [{{ current_lost_items_count }}, {{ claimed_items_count }}],
+    ["#EF4444", "#22C55E"]
+);
+
+makePieChart(
+    "unclaimedVsClaimedChart",
+    ["Unclaimed Items", "Claimed Items"],
+    [{{ unclaimed_items_count }}, {{ claimed_items_count }}],
+    ["#F97316", "#22C55E"]
+);
+
+const departmentLabels = JSON.parse(document.getElementById("department-labels").textContent);
+const departmentData = JSON.parse(document.getElementById("department-data").textContent);
+
+makePieChart(
+    "departmentChart",
+    departmentLabels,
+    departmentData,
+    [
+        "#EF4444", // CON Red
+        "#EAB308", // YAL-CBA Yellow
+        "#22C55E", // CAS Green
+        "#F97316", // COE Orange
+        "#6B7280", // CCS Grey
+        "#EC4899", // CTH Pink
+        "#3B82F6"  // CED Blue
+    ]
+);
+</script>
+{% endblock %}

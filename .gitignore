@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+
+# Django
+*.log
+db.sqlite3
+local_settings.py
+
+# Media / user uploads (keep repo lean)
+media/lostitems/
+media/founditems/
+
+# OS
+.DS_Store

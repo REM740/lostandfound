@@ -17,6 +17,7 @@ urlpatterns = [
 
     path('manage_lost_items/', views.manage_lost_items, name='manage_lost_items'),
     path('manage_found_items/', views.manage_found_items, name='manage_found_items'),
+    path('statistics/', views.statistics, name='statistics'),
 
     path('mark-as-found/<int:id>/', views.mark_as_found, name='mark_as_found'),
 ]

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import LostItem, FoundItem
+from .models import LostItem, FoundItem, DEPARTMENT_CHOICES
+from django.db.models import Count
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -8,7 +9,14 @@ from .forms import LostItemForm, FoundItemForm, FoundItemCreateForm
 from django.shortcuts import get_object_or_404
 
 def homepage(request):
-    return render(request, 'lostandfound/home.html')
+    leaderboard = (
+        FoundItem.objects.exclude(found_by__isnull=True)
+        .exclude(found_by__exact='')
+        .values('found_by', 'department')
+        .annotate(number_of_items_found=Count('id'))
+        .order_by('-number_of_items_found', 'found_by')[:10]
+    )
+    return render(request, 'lostandfound/home.html', {'leaderboard': leaderboard})
 
 def lostitems(request):
     query = request.GET.get('q', '').strip()
@@ -166,6 +174,7 @@ def manage_lost_items(request):
     return render(request, 'manager/manage_lost_items.html', {
         'items': items,
         'form': form,
+        'department_choices': DEPARTMENT_CHOICES,
         'query': query,
     })
 
@@ -182,6 +191,7 @@ def manage_found_items(request):
     return render(request, 'manager/manage_found_items.html', {
         'items': items,
         'form': form,
+        'department_choices': DEPARTMENT_CHOICES,
         'query': query,
     })
 
@@ -193,6 +203,8 @@ def mark_as_found(request, id):
     if request.method == "POST":
 
         found_by = request.POST.get('found_by')
+        found_by_email = request.POST.get('found_by_email')
+        department = request.POST.get('department')
         found_in = request.POST.get('found_in')
         date_found = request.POST.get('date_found')
 
@@ -201,6 +213,8 @@ def mark_as_found(request, id):
             description=item.description,
             found_in=found_in,
             found_by=found_by,
+            found_by_email=found_by_email or None,
+            department=department,
             date_found=date_found,
             image=item.image
         )
@@ -208,4 +222,43 @@ def mark_as_found(request, id):
         item.delete()
 
     return redirect('manage_lost_items')
+
+
+@login_required
+def statistics(request):
+    if not request.user.groups.filter(name='Manager').exists():
+        messages.error(request, "You are not allowed to access statistics.")
+        return redirect('homepage')
+
+    current_lost_items_count = LostItem.objects.count()
+    total_found_items_count = FoundItem.objects.count()
+    claimed_items_count = FoundItem.objects.filter(status='Claimed').count()
+    unclaimed_items_count = FoundItem.objects.filter(status='Unclaimed').count()
+    overall_lost_items_count = current_lost_items_count + total_found_items_count
+
+    lost_by_department = {}
+    for department, _ in DEPARTMENT_CHOICES:
+        current_count = LostItem.objects.filter(department=department).count()
+        found_count = FoundItem.objects.filter(department=department).count()
+        lost_by_department[department] = current_count + found_count
+
+    leaderboard = (
+        FoundItem.objects.exclude(found_by__isnull=True)
+        .exclude(found_by__exact='')
+        .values('found_by', 'department')
+        .annotate(number_of_items_found=Count('id'))
+        .order_by('-number_of_items_found', 'found_by')
+    )
+
+    context = {
+        'overall_lost_items_count': overall_lost_items_count,
+        'current_lost_items_count': current_lost_items_count,
+        'claimed_items_count': claimed_items_count,
+        'unclaimed_items_count': unclaimed_items_count,
+        'lost_by_department_labels': list(lost_by_department.keys()),
+        'lost_by_department_data': list(lost_by_department.values()),
+        'leaderboard': leaderboard,
+    }
+
+    return render(request, 'manager/statistics.html', context)
 
