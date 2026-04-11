@@ -8,6 +8,34 @@ from django.contrib import messages
 from .forms import LostItemForm, FoundItemForm, FoundItemCreateForm
 from django.shortcuts import get_object_or_404
 
+LOST_SORT_ALPHA = 'alphabetical'
+LOST_SORT_DATE = 'date'
+LOST_SORT_DEPT = 'department'
+
+FOUND_SORT_ALPHA = 'alphabetical'
+FOUND_SORT_DATE = 'date'
+FOUND_SORT_DEPT = 'department'
+FOUND_SORT_STATUS = 'status'
+
+
+def _sort_lost_items(qs, sort):
+    if sort == LOST_SORT_ALPHA:
+        return qs.order_by('name')
+    if sort == LOST_SORT_DEPT:
+        return qs.order_by('department', 'name')
+    return qs.order_by('-date_lost')
+
+
+def _sort_found_items(qs, sort):
+    if sort == FOUND_SORT_ALPHA:
+        return qs.order_by('name')
+    if sort == FOUND_SORT_DEPT:
+        return qs.order_by('department', 'name')
+    if sort == FOUND_SORT_STATUS:
+        return qs.order_by('status', 'name')
+    return qs.order_by('-date_found')
+
+
 def homepage(request):
     leaderboard = (
         FoundItem.objects.exclude(found_by__isnull=True)
@@ -20,13 +48,19 @@ def homepage(request):
 
 def lostitems(request):
     query = request.GET.get('q', '').strip()
-    items = LostItem.objects.all().order_by('-date_lost')
+    sort = request.GET.get('sort', LOST_SORT_DATE)
+    if sort not in (LOST_SORT_ALPHA, LOST_SORT_DATE, LOST_SORT_DEPT):
+        sort = LOST_SORT_DATE
+
+    items = LostItem.objects.all()
     if query:
         items = items.filter(name__icontains=query)
+    items = _sort_lost_items(items, sort)
 
     context = {
         'items': items,
         'query': query,
+        'sort': sort,
     }
 
     return render(request, 'lostandfound/lostitems.html', context)
@@ -34,13 +68,24 @@ def lostitems(request):
 
 def founditems(request):
     query = request.GET.get('q', '').strip()
-    items = FoundItem.objects.all().order_by('-date_claimed')
+    sort = request.GET.get('sort', FOUND_SORT_DATE)
+    if sort not in (
+        FOUND_SORT_ALPHA,
+        FOUND_SORT_DATE,
+        FOUND_SORT_DEPT,
+        FOUND_SORT_STATUS,
+    ):
+        sort = FOUND_SORT_DATE
+
+    items = FoundItem.objects.all()
     if query:
         items = items.filter(name__icontains=query)
+    items = _sort_found_items(items, sort)
 
     context = {
         'items': items,
         'query': query,
+        'sort': sort,
     }
 
     return render(request, 'lostandfound/founditems.html', context)
@@ -165,10 +210,14 @@ def delete_found_item(request, id):
 @login_required
 def manage_lost_items(request):
     query = request.GET.get('q', '').strip()
+    sort = request.GET.get('sort', LOST_SORT_DATE)
+    if sort not in (LOST_SORT_ALPHA, LOST_SORT_DATE, LOST_SORT_DEPT):
+        sort = LOST_SORT_DATE
+
     items = LostItem.objects.all()
     if query:
         items = items.filter(name__icontains=query)
-    items = items.order_by('-date_lost')
+    items = _sort_lost_items(items, sort)
     form = LostItemForm()
 
     return render(request, 'manager/manage_lost_items.html', {
@@ -176,16 +225,26 @@ def manage_lost_items(request):
         'form': form,
         'department_choices': DEPARTMENT_CHOICES,
         'query': query,
+        'sort': sort,
     })
 
 
 @login_required
 def manage_found_items(request):
     query = request.GET.get('q', '').strip()
+    sort = request.GET.get('sort', FOUND_SORT_DATE)
+    if sort not in (
+        FOUND_SORT_ALPHA,
+        FOUND_SORT_DATE,
+        FOUND_SORT_DEPT,
+        FOUND_SORT_STATUS,
+    ):
+        sort = FOUND_SORT_DATE
+
     items = FoundItem.objects.all()
     if query:
         items = items.filter(name__icontains=query)
-    items = items.order_by('-date_claimed')
+    items = _sort_found_items(items, sort)
     form = FoundItemCreateForm()
 
     return render(request, 'manager/manage_found_items.html', {
@@ -193,6 +252,7 @@ def manage_found_items(request):
         'form': form,
         'department_choices': DEPARTMENT_CHOICES,
         'query': query,
+        'sort': sort,
     })
 
 @login_required
